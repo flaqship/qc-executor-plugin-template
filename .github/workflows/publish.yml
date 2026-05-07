@@ -1,0 +1,35 @@
+name: Publish to PyPI
+
+# TODO: configure PyPI trusted publisher for this repo before the first
+# release. See https://docs.pypi.org/trusted-publishers/ — you will need to
+# (1) reserve the project name on PyPI, (2) add this repo + workflow + the
+# `release` environment as a trusted publisher, and (3) update the `url:`
+# below to point at the real project page (https://pypi.org/p/<your-name>).
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://pypi.org/p/executor-mybackend
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
