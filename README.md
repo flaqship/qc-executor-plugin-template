@@ -1,18 +1,20 @@
-# executor-mybackend
+# qc-executor-mybackend
 
-> **Template repository** for building a third-party backend plugin for the
-> [Executor](https://github.com/flaqship/Executor) framework.
+> **Template repository** for building a third-party backend plugin for
+> [QC Executor](https://github.com/flaqship/qc-executor).
 >
 > Click **Use this template** on GitHub to start a new plugin repo from this
 > scaffold, then walk through the [Rename Checklist](#rename-checklist) below.
+>
+> Targets QC Executor **v0.1.0**.
 
 ---
 
 ## What this is
 
-[Executor](https://github.com/flaqship/Executor) is an abstraction layer that
-lets one user-facing API drive multiple quantum backends. Backends are
-discovered at runtime via the `executor.backends` Python entry point, so any
+[QC Executor](https://github.com/flaqship/qc-executor) is an abstraction layer
+that lets one user-facing API drive multiple quantum backends. Backends are
+discovered at runtime via the `qc_executor.backends` Python entry point, so any
 PyPI package that ships an `ExecutorBase` subclass and declares the entry point
 is automatically picked up.
 
@@ -24,8 +26,8 @@ to a published PyPI release.
 
 ```bash
 # 1. Click "Use this template" on GitHub, then clone your new repo:
-git clone https://github.com/your-org/executor-mybackend.git
-cd executor-mybackend
+git clone https://github.com/your-org/qc-executor-mybackend.git
+cd qc-executor-mybackend
 
 # 2. Walk through the Rename Checklist below.
 
@@ -33,7 +35,7 @@ cd executor-mybackend
 uv sync --group dev
 uv run pytest tests/
 
-# 4. Replace each `raise NotImplementedError` in src/executor_mybackend/
+# 4. Replace each `raise NotImplementedError` in src/qc_executor_mybackend/
 #    with your real implementation, and convert each
 #    `pytest.raises(NotImplementedError)` in tests/test_executor.py
 #    into a real assertion as you go.
@@ -41,35 +43,42 @@ uv run pytest tests/
 
 ## Rename Checklist
 
-Every occurrence of `mybackend` / `MyBackend` / `executor-mybackend` /
-`executor_mybackend` should become your backend's name. Suggested order:
+Every occurrence of `mybackend` / `MyBackend` / `qc-executor-mybackend` /
+`qc_executor_mybackend` should become your backend's name. Suggested order:
 
 1. **Pick names**:
-   - PyPI distribution name — for example `executor-acmesim` (kebab-case).
-   - Import name — for example `executor_acmesim` (snake-case, must be a valid
-     Python identifier).
+   - PyPI distribution name — for example `qc-executor-acmesim` (kebab-case).
+     Prefixing with `qc-executor-` keeps plugins discoverable alongside the
+     framework.
+   - Import name — for example `qc_executor_acmesim` (snake-case, must be a
+     valid Python identifier).
    - Short backend name — for example `acmesim` (used in `Executor.create("acmesim")`).
 2. **Rename the source package directory:**
-   `src/executor_mybackend/` → `src/executor_<your-name>/`.
-3. **Rename module files** inside `src/executor_<your-name>/`:
+   `src/qc_executor_mybackend/` → `src/qc_executor_<your-name>/`.
+3. **Rename module files** inside `src/qc_executor_<your-name>/`:
    `mybackend_executor.py`, `mybackend_circuit.py`, `mybackend_operator.py`.
 4. **Find-and-replace** across the repo:
    - `MyBackend` → `<YourBackend>` (PascalCase, used in class names)
    - `mybackend` → `<your-backend>` (used in registration strings, docs)
-   - `executor_mybackend` → `executor_<your-name>` (import path)
-   - `executor-mybackend` → `executor-<your-name>` (PyPI distribution name)
+   - `qc_executor_mybackend` → `qc_executor_<your-name>` (import path)
+   - `qc-executor-mybackend` → `qc-executor-<your-name>` (PyPI distribution name)
+
+   Note that `qc_executor` / `qc-executor` on their own refer to the framework
+   and must **not** be renamed.
 5. **Update author / homepage / contact info** in `pyproject.toml`,
    `SECURITY.md`, `CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/config.yml`.
-6. **Update the `LICENSE`** copyright line with your name and year (or replace
-   the file entirely if you want a different license).
+6. **Update `LICENSE.txt`** — fill in the `Copyright [yyyy] [name of copyright
+   owner]` line with your name and year (or replace the file entirely if you
+   want a different license).
 7. **Run the tests** — `uv sync --group dev && uv run pytest tests/`. Everything
    should still be green; the registration test confirms your renamed plugin
    loads correctly.
 
 ## Implementing the contract
 
-`MyBackendExecutor` in `src/executor_mybackend/mybackend_executor.py` subclasses
-[`ExecutorBase`](https://github.com/flaqship/Executor/blob/main/src/executor/base/executor_base.py).
+`MyBackendExecutor` in `src/qc_executor_mybackend/mybackend_executor.py`
+subclasses
+[`ExecutorBase`](https://github.com/flaqship/qc-executor/blob/main/src/qc_executor/base/executor_base.py).
 Replace each stub:
 
 | Method | Returns | Notes |
@@ -81,11 +90,34 @@ Replace each stub:
 | `_transpile_circuit` | `QuantumCircuitBase` | Convert a generic circuit into your backend-native form. |
 | `_transpile_operator` | `QuantumOperatorBase` | Convert a generic operator into your backend-native form. |
 | `get_accepted_backend_types` | `list[type]` | Native backend classes; powers auto-detection. |
+| `get_accepted_backend_aliases` | `list[str]` | Short names the factory should route here. |
 
-For worked examples, see the in-tree backends in the parent repo:
-[Qulacs](https://github.com/flaqship/Executor/tree/main/src/executor/qulacs) (smallest),
-[PennyLane](https://github.com/flaqship/Executor/tree/main/src/executor/pennylane),
-[Qiskit](https://github.com/flaqship/Executor/tree/main/src/executor/qiskit).
+The public wrappers (`expectation_value`, `sample`, …) live on `ExecutorBase`
+and handle parameter normalisation and result caching before delegating to your
+underscore-prefixed implementations — implement only the latter.
+
+A generic `QuantumCircuit` carries a Qiskit circuit as its intermediate
+representation (`circuit.qiskit_circuit`), and a generic `QuantumOperator`
+carries a Qiskit `SparsePauliOp` (`operator.qiskit_operator`). Build your native
+form from those in the circuit/operator wrappers.
+
+### Backend object convention
+
+If your backend selects a device/simulator object or named target, the
+constructor parameter is always called `backend` — the factory forwards
+auto-detected objects and registered aliases through it:
+
+```python
+Executor.create("mybackend", shots=1024)          # by registered name
+Executor.create(my_native_device_object)          # via get_accepted_backend_types()
+Executor.create("my-alias")                       # via get_accepted_backend_aliases()
+```
+
+For worked examples, see the in-tree backends in the framework repo:
+[Qulacs](https://github.com/flaqship/qc-executor/tree/main/src/qc_executor/qulacs) (smallest),
+[PennyLane](https://github.com/flaqship/qc-executor/tree/main/src/qc_executor/pennylane),
+[Qiskit](https://github.com/flaqship/qc-executor/tree/main/src/qc_executor/qiskit),
+[Pauli propagation](https://github.com/flaqship/qc-executor/tree/main/src/qc_executor/pauli_propagation).
 
 ## Testing your plugin
 
@@ -99,28 +131,22 @@ entry points; treat its passing as a gate. `tests/test_executor.py` starts as
 stub assertions of `NotImplementedError` and should be tightened into real
 assertions as you implement methods.
 
-## Switching the executor dependency to PyPI
+## Depending on QC Executor
 
-The template currently pulls the `executor` framework from git:
-
-```toml
-dependencies = [
-    "executor @ git+https://github.com/flaqship/Executor.git",
-]
-```
-
-Once Executor is published to PyPI under its real distribution name, swap this
-for a version pin:
+QC Executor is published on PyPI as
+[`qc-executor`](https://pypi.org/project/qc-executor/); this template pins it in
+`pyproject.toml`:
 
 ```toml
 dependencies = [
-    "<executor-distribution-name>>=<version>",
+    "qc-executor>=0.1.0",
 ]
 ```
 
-(The PyPI name `executor` is currently held by an unrelated package, so
-Executor will publish under a different name. Watch the parent repo's release
-notes for the announcement.)
+The framework only requires Qiskit (used as the common intermediate
+representation). If your plugin needs one of its optional backends for
+comparison in tests, add the matching extra, for example
+`qc-executor[qulacs]>=0.1.0`.
 
 ## Publishing to PyPI
 
@@ -131,11 +157,11 @@ notes for the announcement.)
    the project name on the PyPI side.
 3. Update the `url:` line in `.github/workflows/publish.yml` to point at your
    PyPI project page.
-4. Cut a release: bump the version in `src/executor_<your-name>/__init__.py`,
+4. Cut a release: bump the version in `src/qc_executor_<your-name>/__init__.py`,
    tag, and create a GitHub Release. The `publish.yml` workflow will build and
    upload automatically.
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE). Replace with your preferred license if
-desired; if you do, also update the classifier in `pyproject.toml`.
+Apache 2.0 — see [LICENSE.txt](LICENSE.txt). Replace with your preferred license
+if desired; if you do, also update the classifier in `pyproject.toml`.

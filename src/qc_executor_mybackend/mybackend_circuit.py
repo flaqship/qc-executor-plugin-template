@@ -1,17 +1,22 @@
 """MyBackend native circuit wrapper.
 
-Wraps a generic :class:`executor.quantum_circuit.QuantumCircuit` and exposes it
-in a form your backend can execute. Most in-tree backends keep this class
-standalone (not subclassing :class:`executor.base.circuit_base.QuantumCircuitBase`)
-and only implement the methods their executor actually needs. You can opt in to
-the full base-class contract by changing the class declaration to
+Wraps a generic :class:`qc_executor.quantum_circuit.QuantumCircuit` and exposes
+it in a form your backend can execute. Most in-tree backends keep this class
+standalone (not subclassing
+:class:`qc_executor.base.circuit_base.QuantumCircuitBase`) and only implement
+the methods their executor actually needs. You can opt in to the full
+base-class contract by changing the class declaration to
 ``class MyBackendCircuit(QuantumCircuitBase):`` — that gives you the gate-level
 abstract methods, but you must then implement every gate.
+
+The generic circuit carries a Qiskit circuit as its intermediate
+representation, reachable via ``circuit.qiskit_circuit``; the in-tree backends
+build their native form from it.
 """
 
 from __future__ import annotations
 
-from executor.quantum_circuit import QuantumCircuit
+from qc_executor.quantum_circuit import QuantumCircuit
 
 
 class MyBackendCircuit:

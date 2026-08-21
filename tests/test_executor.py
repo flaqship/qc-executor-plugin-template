@@ -9,6 +9,9 @@ returned value.
 from __future__ import annotations
 
 import pytest
+from qc_executor.factory import Executor
+
+from qc_executor_mybackend import MyBackendExecutor
 
 
 def test_remote_property_is_local(mybackend_executor) -> None:
@@ -19,6 +22,29 @@ def test_remote_property_is_local(mybackend_executor) -> None:
 def test_get_accepted_backend_types(mybackend_executor) -> None:
     """Backend-type list is empty in the template; populate with your SDK's classes."""
     assert mybackend_executor.get_accepted_backend_types() == []
+
+
+def test_get_accepted_backend_aliases(mybackend_executor) -> None:
+    """Alias list is empty in the template; populate with your backend's short names."""
+    assert mybackend_executor.get_accepted_backend_aliases() == []
+
+
+def test_factory_forwards_configuration() -> None:
+    """The factory should pass constructor kwargs straight through to the plugin."""
+    executor = Executor.create("mybackend", shots=1024, seed=42)
+    assert isinstance(executor, MyBackendExecutor)
+    config = executor.get_config()
+    assert config["shots"] == 1024
+    assert config["seed"] == 42
+
+
+def test_switch_backend_preserves_configuration() -> None:
+    """``switch_backend`` round-trips this plugin's configuration."""
+    executor = Executor.create("mybackend", shots=1024, seed=42)
+    switched = executor.switch_backend("mybackend", shots=2048)
+    assert isinstance(switched, MyBackendExecutor)
+    assert switched.get_config()["shots"] == 2048
+    assert switched.get_config()["seed"] == 42
 
 
 def test_expectation_value_stub(mybackend_executor) -> None:

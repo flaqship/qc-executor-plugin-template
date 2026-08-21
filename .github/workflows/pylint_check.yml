@@ -14,6 +14,24 @@ jobs:
   pylint:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Src: Run all checks on the source code
+          - name: source
+            path: src/qc_executor_mybackend
+            args: ""
+          # Tests: Only disable the checks that are meaningless for test code
+          # (docstrings, pytest fixture shadowing, accessing internals under
+          # test, and minimal mock/stub classes).
+          - name: tests
+            path: tests
+            args: >-
+              --disable=missing-module-docstring,missing-class-docstring,missing-function-docstring,redefined-outer-name,protected-access,too-few-public-methods,duplicate-code
+
+    name: pylint (${{ matrix.name }})
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,4 +44,4 @@ jobs:
         run: uv sync --group dev
 
       - name: Run Pylint
-        run: uv run pylint src/executor_mybackend
+        run: uv run pylint ${{ matrix.path }} ${{ matrix.args }}

@@ -1,4 +1,4 @@
-"""MyBackend plugin for the Executor framework.
+"""MyBackend plugin for the QC Executor framework.
 
 Replace this module-level docstring and the ``mybackend``/``MyBackend`` names
 throughout the package with your backend's name. See README.md for the
@@ -8,7 +8,7 @@ full rename checklist.
 __version__ = "0.0.1"
 
 try:
-    from executor.factory import Executor
+    from qc_executor.factory import Executor
 
     from .mybackend_circuit import MyBackendCircuit
     from .mybackend_executor import MyBackendExecutor
@@ -27,7 +27,7 @@ except ImportError as e:
 
     warnings.warn(
         f"MyBackend executor plugin not available: {e}. "
-        "Install with: pip install executor-mybackend",
+        "Install with: pip install qc-executor-mybackend",
         UserWarning,
     )
     raise

@@ -1,10 +1,11 @@
 """Shared pytest fixtures for the MyBackend plugin tests."""
 
 import pytest
-from executor.factory import Executor
+from qc_executor.factory import Executor
 
-import executor_mybackend  # noqa: F401  -- import registers the backend
-from executor_mybackend import MyBackendExecutor
+# Importing the plugin package runs Executor.register(), so the factory below
+# resolves "mybackend" without any extra wiring.
+from qc_executor_mybackend import MyBackendExecutor
 
 
 @pytest.fixture

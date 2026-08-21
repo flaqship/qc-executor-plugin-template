@@ -1,4 +1,4 @@
-# Contributing to executor-mybackend
+# Contributing to qc-executor-mybackend
 
 Thank you for your interest in contributing! This document covers everything you
 need to get started.
@@ -8,8 +8,8 @@ need to get started.
 Prerequisites: [uv](https://docs.astral.sh/uv/getting-started/installation/) installed.
 
 ```bash
-git clone https://github.com/your-org/executor-mybackend.git
-cd executor-mybackend
+git clone https://github.com/your-org/qc-executor-mybackend.git
+cd qc-executor-mybackend
 uv sync --group dev
 ```
 
@@ -40,7 +40,7 @@ uv run black -l 99 src tests
 Linting via [Pylint](https://pylint.readthedocs.io/):
 
 ```bash
-uv run pylint src/executor_mybackend
+uv run pylint src/qc_executor_mybackend
 ```
 
 Both are checked automatically in CI on every PR.
@@ -56,10 +56,10 @@ Use Google-style Python docstrings across the project.
 
 ## Implementing the Executor Contract
 
-The plugin contract is defined by the parent
-[Executor framework](https://github.com/flaqship/Executor). Your job is to fill
-in the abstract methods declared on
-[`ExecutorBase`](https://github.com/flaqship/Executor/blob/main/src/executor/base/executor_base.py):
+The plugin contract is defined by the
+[QC Executor framework](https://github.com/flaqship/qc-executor) (this template
+targets v0.1.0). Your job is to fill in the abstract methods declared on
+[`ExecutorBase`](https://github.com/flaqship/qc-executor/blob/main/src/qc_executor/base/executor_base.py):
 
 | Method | What it should do |
 | ------ | ----------------- |
@@ -70,10 +70,19 @@ in the abstract methods declared on
 | `_transpile_circuit` | Convert a generic circuit into your backend-native form. |
 | `_transpile_operator` | Convert a generic operator into your backend-native form. |
 | `get_accepted_backend_types` | List native backend/device classes for auto-detection. |
+| `get_accepted_backend_aliases` | List string aliases the factory should route here. |
 
-Replace each `raise NotImplementedError` in `src/executor_mybackend/` with your
-implementation, and convert each `pytest.raises(NotImplementedError)` test in
-`tests/test_executor.py` into a real assertion.
+Replace each `raise NotImplementedError` in `src/qc_executor_mybackend/` with
+your implementation, and convert each `pytest.raises(NotImplementedError)` test
+in `tests/test_executor.py` into a real assertion.
+
+Register the executor with the factory through the `qc_executor.backends` entry
+point in `pyproject.toml` — the template already declares it:
+
+```toml
+[project.entry-points."qc_executor.backends"]
+mybackend = "qc_executor_mybackend:MyBackendExecutor"
+```
 
 ## Changelog
 
@@ -82,7 +91,7 @@ Every PR that changes user-facing behaviour should add an entry to
 
 ## Releasing (Maintainers)
 
-1. Update the version in `src/executor_mybackend/__init__.py`
+1. Update the version in `src/qc_executor_mybackend/__init__.py`
 2. Move the `[Unreleased]` section in `CHANGELOG.md` to a new versioned section
 3. Commit: `git commit -m "chore: release vX.Y.Z"`
 4. Tag: `git tag vX.Y.Z && git push --tags`
