@@ -1,6 +1,6 @@
 """MyBackend executor implementation — the meat of a plugin.
 
-Subclass of :class:`executor.base.executor_base.ExecutorBase`. Replace each
+Subclass of :class:`qc_executor.base.executor_base.ExecutorBase`. Replace each
 ``raise NotImplementedError`` with the actual backend logic. Tests in
 ``tests/test_executor.py`` assert that these stubs raise; convert each test to
 a real assertion as you implement the corresponding method.
@@ -8,12 +8,12 @@ a real assertion as you implement the corresponding method.
 
 from __future__ import annotations
 
-from typing import List
+from typing import Any, List
 
 import numpy as np
-from executor.base.circuit_base import QuantumCircuitBase
-from executor.base.executor_base import ExecutorBase
-from executor.base.operator_base import QuantumOperatorBase
+from qc_executor.base.circuit_base import QuantumCircuitBase
+from qc_executor.base.executor_base import ExecutorBase
+from qc_executor.base.operator_base import QuantumOperatorBase
 
 from .mybackend_circuit import MyBackendCircuit
 from .mybackend_operator import MyBackendOperator
@@ -23,6 +23,11 @@ class MyBackendExecutor(ExecutorBase):
     """Executor plugin for MyBackend.
 
     Args:
+        backend (Any, optional): Backend-native device/simulator object or its
+            string name. The framework convention is that this parameter is
+            always called ``backend``; the factory forwards auto-detected
+            objects and aliases through it. Drop the parameter if your backend
+            has nothing to select.
         shots (int | None, optional): Number of shots for sampling.
         seed (int | None, optional): Random seed for reproducibility.
         log_file (str | None, optional): Path to the log file.
@@ -38,6 +43,7 @@ class MyBackendExecutor(ExecutorBase):
 
     def __init__(
         self,
+        backend: Any = None,
         shots: int | None = None,
         seed: int | None = None,
         log_file: str | None = None,
@@ -47,6 +53,7 @@ class MyBackendExecutor(ExecutorBase):
         max_cache_size: int | None = None,
     ):
         super().__init__(
+            backend=backend,
             shots=shots,
             seed=seed,
             log_file=log_file,
@@ -55,6 +62,11 @@ class MyBackendExecutor(ExecutorBase):
             cache_dir=cache_dir,
             max_cache_size=max_cache_size,
         )
+
+        # Dedicated caches for converted circuits/operators, mirroring the
+        # in-tree backends. Drop these if your backend does no conversion.
+        self._circuit_cache = self._make_cache()
+        self._operator_cache = self._make_cache()
 
     @property
     def shots(self) -> int | None:
@@ -76,8 +88,8 @@ class MyBackendExecutor(ExecutorBase):
         """Backend object types this executor accepts for auto-detection.
 
         Return the native backend/device classes from your SDK so that callers
-        can pass an instance directly to :meth:`executor.factory.Executor.create`
-        and have it routed here.
+        can pass an instance directly to
+        :meth:`qc_executor.factory.Executor.create` and have it routed here.
         """
         return []
 
@@ -86,6 +98,8 @@ class MyBackendExecutor(ExecutorBase):
         """String aliases the factory should route to this executor.
 
         Return any short names callers might pass instead of ``"mybackend"``.
+        Each alias is forwarded to ``__init__`` as ``backend=<alias>``, and
+        aliases must be unique across all registered backends.
         """
         return []
 

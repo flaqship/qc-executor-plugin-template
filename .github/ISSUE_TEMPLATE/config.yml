@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question / Discussion
-    url: https://github.com/your-org/executor-mybackend/discussions
+    url: https://github.com/your-org/qc-executor-mybackend/discussions
     about: For general questions, please use GitHub Discussions instead of opening an issue.

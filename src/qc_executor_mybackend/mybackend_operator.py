@@ -1,15 +1,18 @@
 """MyBackend native operator wrapper.
 
-Wraps a generic :class:`executor.quantum_operator.QuantumOperator` for your
+Wraps a generic :class:`qc_executor.quantum_operator.QuantumOperator` for your
 backend's expectation-value/sampling routines. Like the circuit wrapper, this
 class is intentionally not subclassing
-:class:`executor.base.operator_base.QuantumOperatorBase`; subclass it if you
+:class:`qc_executor.base.operator_base.QuantumOperatorBase`; subclass it if you
 want the full algebraic API contract.
+
+The generic operator carries a Qiskit ``SparsePauliOp`` as its intermediate
+representation, reachable via ``operator.qiskit_operator``.
 """
 
 from __future__ import annotations
 
-from executor.quantum_operator import QuantumOperator
+from qc_executor.quantum_operator import QuantumOperator
 
 
 class MyBackendOperator:

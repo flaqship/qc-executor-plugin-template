@@ -3,8 +3,8 @@ requires = ["hatchling >= 1.26"]
 build-backend = "hatchling.build"
 
 [project]
-name = "executor-mybackend"
-description = "Executor plugin template — replace this description with your backend's purpose."
+name = "qc-executor-mybackend"
+description = "QC Executor plugin template — replace this description with your backend's purpose."
 readme = "README.md"
 authors = [
     {name = "Your Name", email = "you@example.com"},
@@ -12,7 +12,7 @@ authors = [
 maintainers = [
     {name = "Your Name", email = "you@example.com"},
 ]
-license = {file = "LICENSE"}
+license = {file = "LICENSE.txt"}
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
@@ -25,22 +25,20 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-keywords = ["quantum", "circuit", "executor", "plugin", "backend"]
+keywords = ["quantum", "circuit", "executor", "qc-executor", "plugin", "backend"]
 dependencies = [
-    # Pinned to the `develop` branch until the plugin architecture lands on `main`
-    # and Executor publishes to PyPI under its real distribution name. See README.
-    "executor @ git+https://github.com/flaqship/Executor.git@develop",
+    "qc-executor>=0.1.0",
     "numpy>=1.20",
 ]
 requires-python = ">=3.10"
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/your-org/executor-mybackend"
-Issues = "https://github.com/your-org/executor-mybackend/issues"
+Homepage = "https://github.com/your-org/qc-executor-mybackend"
+Issues = "https://github.com/your-org/qc-executor-mybackend/issues"
 
-[project.entry-points."executor.backends"]
-mybackend = "executor_mybackend:MyBackendExecutor"
+[project.entry-points."qc_executor.backends"]
+mybackend = "qc_executor_mybackend:MyBackendExecutor"
 
 [dependency-groups]
 dev = [
@@ -54,16 +52,13 @@ dev = [
 managed = true
 
 [tool.hatch.version]
-path = "src/executor_mybackend/__init__.py"
+path = "src/qc_executor_mybackend/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/executor_mybackend"]
+packages = ["src/qc_executor_mybackend"]
 
-# Required while the `executor` dependency is pinned via a direct git URL.
-# Once Executor is published to PyPI under its real distribution name, you
-# can swap the dependency for a version pin and remove this line.
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "LICENSE.txt", "pyproject.toml"]
 
 [tool.black]
 line-length = 99
@@ -76,15 +71,28 @@ line_length = 99
 max-line-length = 99
 
 [tool.pylint.design]
-max-attributes = 10
-max-args = 10
-max-positional-arguments = 10
-max-locals = 20
+max-attributes = 20
+max-args = 20
+max-positional-arguments = 20
+max-locals = 50
 max-public-methods = 50
 
 [tool.pylint.main]
 extension-pkg-allow-list = [
     "numpy",
+]
+
+[tool.pylint.classes]
+# Recognise pytest's setup_method/setup_class as valid places to define
+# instance/class attributes, alongside the usual dunder and unittest hooks.
+defining-attr-methods = [
+    "__init__",
+    "__new__",
+    "setUp",
+    "asyncSetUp",
+    "__post_init__",
+    "setup_method",
+    "setup_class",
 ]
 
 [tool.pylint."messages control"]
@@ -93,3 +101,10 @@ disable = ["fixme"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "@abstractmethod",
+]
