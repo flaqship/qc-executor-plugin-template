@@ -96,7 +96,7 @@ The public wrappers (`expectation_value`, `sample`, …) live on `ExecutorBase`
 and handle parameter normalisation and result caching before delegating to your
 underscore-prefixed implementations — implement only the latter.
 
-A generic `QuantumCircuit` carries a generic intermediate circuit representation (`CircuitIR`) to decouple dependencies from different backends.
+A generic `QuantumCircuitBase` carries an intermediate circuit representation (`CircuitIR`), so it doesn't depend on any other backend.
 
 ### Backend object convention
 
