@@ -6,7 +6,7 @@
 > Click **Use this template** on GitHub to start a new plugin repo from this
 > scaffold, then walk through the [Rename Checklist](#rename-checklist) below.
 >
-> Targets QC Executor **v0.1.0**.
+> Targets QC Executor **v0.2.1**.
 
 ---
 
@@ -96,10 +96,7 @@ The public wrappers (`expectation_value`, `sample`, …) live on `ExecutorBase`
 and handle parameter normalisation and result caching before delegating to your
 underscore-prefixed implementations — implement only the latter.
 
-A generic `QuantumCircuit` carries a Qiskit circuit as its intermediate
-representation (`circuit.qiskit_circuit`), and a generic `QuantumOperator`
-carries a Qiskit `SparsePauliOp` (`operator.qiskit_operator`). Build your native
-form from those in the circuit/operator wrappers.
+A generic `QuantumCircuit` carries a generic intermediate circuit representation (`CircuitIR`) to decouple dependencies from different backends.
 
 ### Backend object convention
 
@@ -139,14 +136,13 @@ QC Executor is published on PyPI as
 
 ```toml
 dependencies = [
-    "qc-executor>=0.1.0",
+   "qc-executor>=0.2.1",
 ]
 ```
 
-The framework only requires Qiskit (used as the common intermediate
-representation). If your plugin needs one of its optional backends for
+If your plugin needs one of its optional backends for
 comparison in tests, add the matching extra, for example
-`qc-executor[qulacs]>=0.1.0`.
+`qc-executor[qulacs]>=0.2.1`.
 
 ## Publishing to PyPI
 

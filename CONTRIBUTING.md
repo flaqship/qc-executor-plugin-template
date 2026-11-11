@@ -58,7 +58,7 @@ Use Google-style Python docstrings across the project.
 
 The plugin contract is defined by the
 [QC Executor framework](https://github.com/flaqship/qc-executor) (this template
-targets v0.1.0). Your job is to fill in the abstract methods declared on
+targets v0.2.1). Your job is to fill in the abstract methods declared on
 [`ExecutorBase`](https://github.com/flaqship/qc-executor/blob/main/src/qc_executor/base/executor_base.py):
 
 | Method | What it should do |
