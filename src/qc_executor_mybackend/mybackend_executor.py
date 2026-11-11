@@ -76,7 +76,7 @@ class MyBackendExecutor(ExecutorBase):
     @shots.setter
     def shots(self, value: int | None) -> None:
         """Set the number of shots."""
-        raise NotImplementedError
+        raise NotImplementedError(f"TODO: implement shots setter for {type(self).__name__}")
 
     @property
     def remote(self) -> bool:
@@ -109,7 +109,7 @@ class MyBackendExecutor(ExecutorBase):
         observable: QuantumOperatorBase | List[QuantumOperatorBase],
         **parameters,
     ) -> float | np.ndarray:
-        raise NotImplementedError("TODO: implement _expectation_value for MyBackend")
+        raise NotImplementedError(f"TODO: implement _expectation_value for {type(self).__name__}")
 
     def _expectation_value_derivatives(
         self,
@@ -118,20 +118,20 @@ class MyBackendExecutor(ExecutorBase):
         *derivative,
         **parameters,
     ) -> float | np.ndarray | dict:
-        raise NotImplementedError("TODO: implement _expectation_value_derivatives for MyBackend")
+        raise NotImplementedError(f"TODO: implement _expectation_value_derivatives for {type(self).__name__}")
 
     def _sample(
         self, circuit: QuantumCircuitBase | List[QuantumCircuitBase], **parameters
     ) -> dict | List[dict]:
-        raise NotImplementedError("TODO: implement _sample for MyBackend")
+        raise NotImplementedError(f"TODO: implement _sample for {type(self).__name__}")
 
     def _statevector(
         self, circuit: QuantumCircuitBase | List[QuantumCircuitBase], **parameters
     ) -> np.ndarray:
-        raise NotImplementedError("TODO: implement _statevector for MyBackend")
+        raise NotImplementedError(f"TODO: implement _statevector for {type(self).__name__}")
 
-    def _transpile_circuit(self, circuit: QuantumCircuitBase) -> QuantumCircuitBase:
-        raise NotImplementedError("TODO: implement _transpile_circuit for MyBackend")
+    def _transpile_circuit(self, circuit: QuantumCircuitBase) -> MyBackendCircuit:
+        raise NotImplementedError(f"TODO: implement _transpile_circuit for {type(self).__name__}")
 
-    def _transpile_operator(self, operator: QuantumOperatorBase) -> QuantumOperatorBase:
-        raise NotImplementedError("TODO: implement _transpile_operator for MyBackend")
+    def _transpile_operator(self, operator: QuantumOperatorBase, **options: Any) -> MyBackendOperator:
+        raise NotImplementedError(f"TODO: implement _transpile_operator for {type(self).__name__}")
