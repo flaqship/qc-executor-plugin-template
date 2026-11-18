@@ -120,7 +120,9 @@ class MyBackendExecutor(ExecutorBase):
         *derivative,
         **parameters,
     ) -> float | np.ndarray | dict:
-        raise NotImplementedError(f"TODO: implement _expectation_value_derivatives for {type(self).__name__}")
+        raise NotImplementedError(
+            f"TODO: implement _expectation_value_derivatives for {type(self).__name__}"
+        )
 
     def _sample(
         self, circuit: QuantumCircuitBase | List[QuantumCircuitBase], **parameters
@@ -133,9 +135,12 @@ class MyBackendExecutor(ExecutorBase):
         raise NotImplementedError(f"TODO: implement _statevector for {type(self).__name__}")
 
     def _transpile_circuit(self, circuit: QuantumCircuitBase) -> MyBackendCircuit:
-        raise NotImplementedError(f"TODO: implement _transpile_circuit for {type(self).__name__}")
+        # Add device-specific steps (e.g. qubit mapping) here if your backend needs them.
+        return MyBackendCircuit.from_quantum_circuit(circuit)
 
-    def _transpile_operator(self, operator: QuantumOperatorBase, **options: Any) -> MyBackendOperator:
+    def _transpile_operator(
+        self, operator: QuantumOperatorBase, **options: Any
+    ) -> MyBackendOperator:
         # The base class does not cache operator conversion (only results, when
         # ``caching=True``). Add a cache here if conversion is expensive.
-        raise NotImplementedError(f"TODO: implement _transpile_operator for {type(self).__name__}")
+        return MyBackendOperator.from_quantum_operator(operator, **options)

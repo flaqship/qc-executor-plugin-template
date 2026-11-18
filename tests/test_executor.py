@@ -1,6 +1,6 @@
-"""Stub tests for MyBackendExecutor abstract methods.
+"""Tests for MyBackendExecutor.
 
-Each abstract method is asserted to raise ``NotImplementedError`` so the suite
+Unimplemented methods are asserted to raise ``NotImplementedError`` so the suite
 is green on a fresh template clone. As you implement each method, replace the
 ``pytest.raises(NotImplementedError)`` block with a real assertion against the
 returned value.
@@ -9,9 +9,10 @@ returned value.
 from __future__ import annotations
 
 import pytest
+from qc_executor import QuantumCircuit, QuantumOperator
 from qc_executor.factory import Executor
 
-from qc_executor_mybackend import MyBackendExecutor
+from qc_executor_mybackend import MyBackendCircuit, MyBackendExecutor, MyBackendOperator
 
 
 def test_remote_property_is_local(mybackend_executor) -> None:
@@ -47,37 +48,52 @@ def test_switch_backend_preserves_configuration() -> None:
     assert switched.get_config()["seed"] == 42
 
 
-def test_expectation_value_stub(mybackend_executor) -> None:
+@pytest.fixture
+def circuit() -> QuantumCircuit:
+    generic = QuantumCircuit(2)
+    generic.h(0)
+    generic.cx(0, 1)
+    return generic
+
+
+@pytest.fixture
+def observable() -> QuantumOperator:
+    return QuantumOperator(["ZI", "XX"], [1.0, 0.5])
+
+
+def test_expectation_value_stub(mybackend_executor, circuit, observable) -> None:
     """``expectation_value`` should raise until you implement ``_expectation_value``."""
-    with pytest.raises(NotImplementedError):
-        mybackend_executor.expectation_value(circuit=None, observable=None)
+    with pytest.raises(NotImplementedError, match="TODO"):
+        mybackend_executor.expectation_value(circuit, observable)
 
 
-def test_expectation_value_derivatives_stub(mybackend_executor) -> None:
+def test_expectation_value_derivatives_stub(mybackend_executor, circuit, observable) -> None:
     """``expectation_value_derivatives`` should raise until you implement it."""
-    with pytest.raises(NotImplementedError):
-        mybackend_executor.expectation_value_derivatives(circuit=None, observable=None)
+    with pytest.raises(NotImplementedError, match="TODO"):
+        mybackend_executor.expectation_value_derivatives(circuit, observable)
 
 
-def test_sample_stub(mybackend_executor) -> None:
+def test_sample_stub(mybackend_executor, circuit) -> None:
     """``sample`` should raise until you implement ``_sample``."""
-    with pytest.raises(NotImplementedError):
-        mybackend_executor.sample(circuit=None)
+    with pytest.raises(NotImplementedError, match="TODO"):
+        mybackend_executor.sample(circuit)
 
 
-def test_statevector_stub(mybackend_executor) -> None:
+def test_statevector_stub(mybackend_executor, circuit) -> None:
     """``statevector`` should raise until you implement ``_statevector``."""
-    with pytest.raises(NotImplementedError):
-        mybackend_executor.statevector(circuit=None)
+    with pytest.raises(NotImplementedError, match="TODO"):
+        mybackend_executor.statevector(circuit)
 
 
-def test_transpile_circuit_stub(mybackend_executor) -> None:
-    """``transpile_circuit`` should raise until you implement ``_transpile_circuit``."""
-    with pytest.raises(NotImplementedError):
-        mybackend_executor.transpile_circuit(circuit=None)
+def test_transpile_circuit_returns_native(mybackend_executor, circuit) -> None:
+    native = mybackend_executor.transpile_circuit(circuit)
+
+    assert isinstance(native, MyBackendCircuit)
+    assert native.ir == circuit.ir
 
 
-def test_transpile_operator_stub(mybackend_executor) -> None:
-    """``transpile_operator`` should raise until you implement ``_transpile_operator``."""
-    with pytest.raises(NotImplementedError):
-        mybackend_executor.transpile_operator(operator=None)
+def test_transpile_operator_returns_native(mybackend_executor, observable) -> None:
+    native = mybackend_executor.transpile_operator(observable)
+
+    assert isinstance(native, MyBackendOperator)
+    assert native == observable

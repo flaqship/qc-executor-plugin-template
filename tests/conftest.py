@@ -11,4 +11,6 @@ from qc_executor_mybackend import MyBackendExecutor
 @pytest.fixture
 def mybackend_executor() -> MyBackendExecutor:
     """Return a freshly-constructed MyBackendExecutor."""
-    return Executor.create("mybackend")
+    executor = Executor.create("mybackend")
+    assert isinstance(executor, MyBackendExecutor)
+    return executor
