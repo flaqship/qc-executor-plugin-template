@@ -31,10 +31,12 @@ discuss the design.
 
 ## Code Style
 
-This project uses [Black](https://black.readthedocs.io/) with a line length of 99.
+This project uses [Black](https://black.readthedocs.io/) with a line length of 99
+and [isort](https://pycqa.github.io/isort/).
 
 ```bash
 uv run black -l 99 src tests
+uvx isort src tests
 ```
 
 Linting via [Pylint](https://pylint.readthedocs.io/):
@@ -56,25 +58,10 @@ Use Google-style Python docstrings across the project.
 
 ## Implementing the Executor Contract
 
-The plugin contract is defined by the
-[QC Executor framework](https://github.com/flaqship/qc-executor) (this template
-targets v0.2.1). Your job is to fill in the abstract methods declared on
-[`ExecutorBase`](https://github.com/flaqship/qc-executor/blob/main/src/qc_executor/base/executor_base.py):
-
-| Method | What it should do |
-| ------ | ----------------- |
-| `_expectation_value` | Return the expectation value of an observable on a circuit. |
-| `_expectation_value_derivatives` | Return analytic gradients of the expectation value. |
-| `_sample` | Return measurement-shot counts. |
-| `_statevector` | Return the full statevector. |
-| `_transpile_circuit` | Convert a generic circuit into your backend-native form. |
-| `_transpile_operator` | Convert a generic operator into your backend-native form. |
-| `get_accepted_backend_types` | List native backend/device classes for auto-detection. |
-| `get_accepted_backend_aliases` | List string aliases the factory should route here. |
-
-Replace each `raise NotImplementedError` in `src/qc_executor_mybackend/` with
-your implementation, and convert each `pytest.raises(NotImplementedError)` test
-in `tests/test_executor.py` into a real assertion.
+The contract is defined by
+[QC Executor](https://github.com/flaqship/qc-executor) v0.2.1; see
+[Implementing the contract](README.md#implementing-the-contract) for the
+methods to fill in on the executor and the native circuit/operator classes.
 
 Register the executor with the factory through the `qc_executor.backends` entry
 point in `pyproject.toml` — the template already declares it:
