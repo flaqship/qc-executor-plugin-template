@@ -35,7 +35,14 @@ class MyBackendExecutor(ExecutorBase):
         caching (bool | None, optional): Whether to use in-memory caching.
         cache_dir (str, optional): Directory for caching.
         max_cache_size (int | None, optional): Maximum number of entries kept
-            in each in-memory cache.
+            in each in-memory cache; ``None`` makes them unbounded.
+
+    Note:
+        ``ExecutorBase`` already caches circuit conversion (keyed by circuit
+        content), so no dedicated circuit cache is needed here. Operator
+        conversion is *not* cached by the base class; if converting an
+        operator is expensive for your backend, cache it inside
+        :meth:`_transpile_operator`, keyed by ``(operator, options)``.
     """
 
     _native_circuit_class = MyBackendCircuit
@@ -50,7 +57,7 @@ class MyBackendExecutor(ExecutorBase):
         log_level: str = "WARNING",
         caching: bool | None = None,
         cache_dir: str = "cache",
-        max_cache_size: int | None = None,
+        max_cache_size: int | None = 4096,
     ):
         super().__init__(
             backend=backend,
@@ -63,11 +70,6 @@ class MyBackendExecutor(ExecutorBase):
             max_cache_size=max_cache_size,
         )
 
-        # Dedicated caches for converted circuits/operators, mirroring the
-        # in-tree backends. Drop these if your backend does no conversion.
-        self._circuit_cache = self._make_cache()
-        self._operator_cache = self._make_cache()
-
     @property
     def shots(self) -> int | None:
         """Return the number of shots."""
@@ -76,7 +78,7 @@ class MyBackendExecutor(ExecutorBase):
     @shots.setter
     def shots(self, value: int | None) -> None:
         """Set the number of shots."""
-        raise NotImplementedError
+        raise NotImplementedError(f"TODO: implement shots setter for {type(self).__name__}")
 
     @property
     def remote(self) -> bool:
@@ -109,7 +111,7 @@ class MyBackendExecutor(ExecutorBase):
         observable: QuantumOperatorBase | List[QuantumOperatorBase],
         **parameters,
     ) -> float | np.ndarray:
-        raise NotImplementedError("TODO: implement _expectation_value for MyBackend")
+        raise NotImplementedError(f"TODO: implement _expectation_value for {type(self).__name__}")
 
     def _expectation_value_derivatives(
         self,
@@ -118,20 +120,27 @@ class MyBackendExecutor(ExecutorBase):
         *derivative,
         **parameters,
     ) -> float | np.ndarray | dict:
-        raise NotImplementedError("TODO: implement _expectation_value_derivatives for MyBackend")
+        raise NotImplementedError(
+            f"TODO: implement _expectation_value_derivatives for {type(self).__name__}"
+        )
 
     def _sample(
         self, circuit: QuantumCircuitBase | List[QuantumCircuitBase], **parameters
     ) -> dict | List[dict]:
-        raise NotImplementedError("TODO: implement _sample for MyBackend")
+        raise NotImplementedError(f"TODO: implement _sample for {type(self).__name__}")
 
     def _statevector(
         self, circuit: QuantumCircuitBase | List[QuantumCircuitBase], **parameters
     ) -> np.ndarray:
-        raise NotImplementedError("TODO: implement _statevector for MyBackend")
+        raise NotImplementedError(f"TODO: implement _statevector for {type(self).__name__}")
 
-    def _transpile_circuit(self, circuit: QuantumCircuitBase) -> QuantumCircuitBase:
-        raise NotImplementedError("TODO: implement _transpile_circuit for MyBackend")
+    def _transpile_circuit(self, circuit: QuantumCircuitBase) -> MyBackendCircuit:
+        # Add device-specific steps (e.g. qubit mapping) here if your backend needs them.
+        return MyBackendCircuit.from_quantum_circuit(circuit)
 
-    def _transpile_operator(self, operator: QuantumOperatorBase) -> QuantumOperatorBase:
-        raise NotImplementedError("TODO: implement _transpile_operator for MyBackend")
+    def _transpile_operator(
+        self, operator: QuantumOperatorBase, **options: Any
+    ) -> MyBackendOperator:
+        # The base class does not cache operator conversion (only results, when
+        # ``caching=True``). Add a cache here if conversion is expensive.
+        return MyBackendOperator.from_quantum_operator(operator, **options)

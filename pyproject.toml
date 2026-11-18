@@ -27,7 +27,7 @@ classifiers = [
 ]
 keywords = ["quantum", "circuit", "executor", "qc-executor", "plugin", "backend"]
 dependencies = [
-    "qc-executor>=0.1.0",
+    "qc-executor>=0.2.1",
     "numpy>=1.20",
 ]
 requires-python = ">=3.10"

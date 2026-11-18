@@ -1,34 +1,25 @@
-"""MyBackend native operator wrapper.
+"""MyBackend native operator.
 
-Wraps a generic :class:`qc_executor.quantum_operator.QuantumOperator` for your
-backend's expectation-value/sampling routines. Like the circuit wrapper, this
-class is intentionally not subclassing
-:class:`qc_executor.base.operator_base.QuantumOperatorBase`; subclass it if you
-want the full algebraic API contract.
+:class:`~qc_executor.base.operator_base.QuantumOperatorBase` is concrete: it
+owns the sparse Pauli representation and the operator algebra. A backend
+overrides only :meth:`~MyBackendOperator._build_native`.
 
-The generic operator carries a Qiskit ``SparsePauliOp`` as its intermediate
-representation, reachable via ``operator.qiskit_operator``.
+An operator is a weighted sum of Pauli strings, read through ``paulis``,
+``coeffs`` or ``ir``. Qubit ``q`` is character ``q`` of a label (qubit 0
+leftmost, the reverse of Qiskit). Coefficients are numbers or SymPy
+expressions; bind or compile the symbolic ones at evaluation time.
 """
 
 from __future__ import annotations
 
-from qc_executor.quantum_operator import QuantumOperator
+from typing import Any
+
+from qc_executor.base.operator_base import QuantumOperatorBase
 
 
-class MyBackendOperator:
+class MyBackendOperator(QuantumOperatorBase):
     """Backend-native operator for MyBackend."""
 
-    @classmethod
-    def from_quantum_operator(cls, operator: QuantumOperator) -> "MyBackendOperator":
-        """Create a MyBackend native operator from a generic ``QuantumOperator``."""
-        return cls(operator)
-
-    def __init__(self, operator: QuantumOperator) -> None:
-        self._source_operator = operator
-        self._num_qubits = operator.num_qubits
-        # TODO: build your backend-native representation from ``operator`` here.
-
-    @property
-    def num_qubits(self) -> int:
-        """Return the number of qubits the operator acts on."""
-        return self._num_qubits
+    def _build_native(self) -> Any:
+        """Compile :attr:`paulis` and :attr:`coeffs` into MyBackend's native operator."""
+        raise NotImplementedError(f"TODO: compile the Pauli terms into a {type(self).__name__}")

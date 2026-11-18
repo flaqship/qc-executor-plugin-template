@@ -1,38 +1,35 @@
-"""MyBackend native circuit wrapper.
+"""MyBackend native circuit.
 
-Wraps a generic :class:`qc_executor.quantum_circuit.QuantumCircuit` and exposes
-it in a form your backend can execute. Most in-tree backends keep this class
-standalone (not subclassing
-:class:`qc_executor.base.circuit_base.QuantumCircuitBase`) and only implement
-the methods their executor actually needs. You can opt in to the full
-base-class contract by changing the class declaration to
-``class MyBackendCircuit(QuantumCircuitBase):`` — that gives you the gate-level
-abstract methods, but you must then implement every gate.
-
-The generic circuit carries a Qiskit circuit as its intermediate
-representation, reachable via ``circuit.qiskit_circuit``; the in-tree backends
-build their native form from it.
+:class:`~qc_executor.base.circuit_base.QuantumCircuitBase` is concrete: it owns
+the circuit IR and the whole builder API. A backend overrides only
+:meth:`~MyBackendCircuit.supported_opcodes` and
+:meth:`~MyBackendCircuit._build_native`. Gates outside the supported set are
+lowered by the framework, or rejected with ``UnsupportedGateError`` when no
+decomposition exists.
 """
 
 from __future__ import annotations
 
-from qc_executor.quantum_circuit import QuantumCircuit
+from typing import Any, FrozenSet
+
+from qc_executor.base.circuit_base import QuantumCircuitBase
+from qc_executor.base.gate_set import OpCode
+
+#: TODO: declare the gates MyBackend executes natively.
+SUPPORTED_OPCODES: FrozenSet[OpCode] = frozenset()
 
 
-class MyBackendCircuit:
+class MyBackendCircuit(QuantumCircuitBase):
     """Backend-native circuit for MyBackend."""
 
     @classmethod
-    def from_quantum_circuit(cls, circuit: QuantumCircuit) -> "MyBackendCircuit":
-        """Create a MyBackend native circuit from a generic ``QuantumCircuit``."""
-        return cls(circuit)
+    def supported_opcodes(cls) -> FrozenSet[OpCode]:
+        """Return the opcodes MyBackend executes natively."""
+        return SUPPORTED_OPCODES
 
-    def __init__(self, circuit: QuantumCircuit) -> None:
-        self._source_circuit = circuit
-        self._num_qubits = circuit.num_qubits
-        # TODO: build your backend-native representation from ``circuit`` here.
-
-    @property
-    def num_qubits(self) -> int:
-        """Return the number of qubits in the circuit."""
-        return self._num_qubits
+    def _build_native(self) -> Any:
+        """Compile the lowered IR into MyBackend's native circuit."""
+        ir = self._lowered_ir()  # only supported_opcodes() (plus BARRIER) from here on
+        raise NotImplementedError(
+            f"TODO: compile {len(ir)} lowered instructions into a {type(self).__name__}"
+        )
