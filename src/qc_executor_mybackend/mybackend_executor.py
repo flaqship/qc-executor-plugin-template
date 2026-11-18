@@ -35,7 +35,14 @@ class MyBackendExecutor(ExecutorBase):
         caching (bool | None, optional): Whether to use in-memory caching.
         cache_dir (str, optional): Directory for caching.
         max_cache_size (int | None, optional): Maximum number of entries kept
-            in each in-memory cache.
+            in each in-memory cache; ``None`` makes them unbounded.
+
+    Note:
+        ``ExecutorBase`` already caches circuit conversion (keyed by circuit
+        content), so no dedicated circuit cache is needed here. Operator
+        conversion is *not* cached by the base class; if converting an
+        operator is expensive for your backend, cache it inside
+        :meth:`_transpile_operator`, keyed by ``(operator, options)``.
     """
 
     _native_circuit_class = MyBackendCircuit
@@ -50,7 +57,7 @@ class MyBackendExecutor(ExecutorBase):
         log_level: str = "WARNING",
         caching: bool | None = None,
         cache_dir: str = "cache",
-        max_cache_size: int | None = None,
+        max_cache_size: int | None = 4096,
     ):
         super().__init__(
             backend=backend,
@@ -62,11 +69,6 @@ class MyBackendExecutor(ExecutorBase):
             cache_dir=cache_dir,
             max_cache_size=max_cache_size,
         )
-
-        # Dedicated caches for converted circuits/operators, mirroring the
-        # in-tree backends. Drop these if your backend does no conversion.
-        self._circuit_cache = self._make_cache()
-        self._operator_cache = self._make_cache()
 
     @property
     def shots(self) -> int | None:
@@ -134,4 +136,6 @@ class MyBackendExecutor(ExecutorBase):
         raise NotImplementedError(f"TODO: implement _transpile_circuit for {type(self).__name__}")
 
     def _transpile_operator(self, operator: QuantumOperatorBase, **options: Any) -> MyBackendOperator:
+        # The base class does not cache operator conversion (only results, when
+        # ``caching=True``). Add a cache here if conversion is expensive.
         raise NotImplementedError(f"TODO: implement _transpile_operator for {type(self).__name__}")
