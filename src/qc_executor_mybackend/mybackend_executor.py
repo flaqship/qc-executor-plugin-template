@@ -36,13 +36,6 @@ class MyBackendExecutor(ExecutorBase):
         cache_dir (str, optional): Directory for caching.
         max_cache_size (int | None, optional): Maximum number of entries kept
             in each in-memory cache; ``None`` makes them unbounded.
-
-    Note:
-        ``ExecutorBase`` already caches circuit conversion (keyed by circuit
-        content), so no dedicated circuit cache is needed here. Operator
-        conversion is *not* cached by the base class; if converting an
-        operator is expensive for your backend, cache it inside
-        :meth:`_transpile_operator`, keyed by ``(operator, options)``.
     """
 
     _native_circuit_class = MyBackendCircuit
@@ -141,6 +134,5 @@ class MyBackendExecutor(ExecutorBase):
     def _transpile_operator(
         self, operator: QuantumOperatorBase, **options: Any
     ) -> MyBackendOperator:
-        # The base class does not cache operator conversion (only results, when
-        # ``caching=True``). Add a cache here if conversion is expensive.
+        # Cached by the base class only when caching=True.
         return MyBackendOperator.from_quantum_operator(operator, **options)
