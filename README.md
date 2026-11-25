@@ -6,7 +6,7 @@
 > Click **Use this template** on GitHub to start a new plugin repo from this
 > scaffold, then walk through the [Rename Checklist](#rename-checklist) below.
 >
-> Targets QC Executor **v0.1.0**.
+> Targets QC Executor **v0.2.1**.
 
 ---
 
@@ -35,10 +35,8 @@ cd qc-executor-mybackend
 uv sync --group dev
 uv run pytest tests/
 
-# 4. Replace each `raise NotImplementedError` in src/qc_executor_mybackend/
-#    with your real implementation, and convert each
-#    `pytest.raises(NotImplementedError)` in tests/test_executor.py
-#    into a real assertion as you go.
+# 4. Declare SUPPORTED_OPCODES, replace each `raise NotImplementedError`
+#    in src/, and turn the matching stub tests into real assertions.
 ```
 
 ## Rename Checklist
@@ -76,30 +74,32 @@ Every occurrence of `mybackend` / `MyBackend` / `qc-executor-mybackend` /
 
 ## Implementing the contract
 
-`MyBackendExecutor` in `src/qc_executor_mybackend/mybackend_executor.py`
-subclasses
-[`ExecutorBase`](https://github.com/flaqship/qc-executor/blob/main/src/qc_executor/base/executor_base.py).
-Replace each stub:
+Three classes make up a plugin:
 
-| Method | Returns | Notes |
-| ------ | ------- | ----- |
-| `_expectation_value` | `float \| np.ndarray` | Expectation value of an observable on a circuit. |
-| `_expectation_value_derivatives` | `float \| np.ndarray \| dict` | Analytic gradients with respect to circuit parameters. |
-| `_sample` | `dict \| list[dict]` | Measurement-shot counts (bitstring → count). |
-| `_statevector` | `np.ndarray` | Full statevector of the circuit. |
-| `_transpile_circuit` | `QuantumCircuitBase` | Convert a generic circuit into your backend-native form. |
-| `_transpile_operator` | `QuantumOperatorBase` | Convert a generic operator into your backend-native form. |
-| `get_accepted_backend_types` | `list[type]` | Native backend classes; powers auto-detection. |
-| `get_accepted_backend_aliases` | `list[str]` | Short names the factory should route here. |
+- `MyBackendExecutor` subclasses
+  [`ExecutorBase`](https://github.com/flaqship/qc-executor/blob/main/src/qc_executor/base/executor_base.py).
+  Its public methods (`expectation_value`, `sample`, …) normalise parameters,
+  cache results and convert inputs, then call your underscore methods.
+- `MyBackendCircuit` / `MyBackendOperator` subclass `QuantumCircuitBase` /
+  `QuantumOperatorBase`, which hold the framework-independent circuit IR and
+  Pauli representation. You only compile that into your SDK's objects.
 
-The public wrappers (`expectation_value`, `sample`, …) live on `ExecutorBase`
-and handle parameter normalisation and result caching before delegating to your
-underscore-prefixed implementations — implement only the latter.
+| Class | Method | Returns | Notes |
+| ----- | ------ | ------- | ----- |
+| Circuit | `supported_opcodes` | `frozenset[OpCode]` | Gates your backend runs natively; others are lowered or rejected. |
+| Circuit | `_build_native` | SDK circuit | Compile `self._lowered_ir()`. |
+| Operator | `_build_native` | SDK operator | Compile `paulis` / `coeffs`. |
+| Executor | `_expectation_value` | `float \| np.ndarray` | Expectation value of an observable on a circuit. |
+| Executor | `_expectation_value_derivatives` | `float \| np.ndarray \| dict` | Analytic gradients with respect to circuit parameters. |
+| Executor | `_sample` | `dict \| list[dict]` | Measurement-shot counts (bitstring → count). |
+| Executor | `_statevector` | `np.ndarray` | Full statevector of the circuit. |
+| Executor | `_transpile_circuit` / `_transpile_operator` | native type | Implemented; extend for device mapping. |
+| Executor | `get_accepted_backend_types` | `list[type]` | Native backend classes; powers auto-detection. |
+| Executor | `get_accepted_backend_aliases` | `list[str]` | Short names the factory should route here. |
 
-A generic `QuantumCircuit` carries a Qiskit circuit as its intermediate
-representation (`circuit.qiskit_circuit`), and a generic `QuantumOperator`
-carries a Qiskit `SparsePauliOp` (`operator.qiskit_operator`). Build your native
-form from those in the circuit/operator wrappers.
+If a native class needs its own state, keep the base constructor signature and
+add only keyword-only arguments: inherited methods such as `copy()` rebuild
+instances through it.
 
 ### Backend object convention
 
@@ -126,10 +126,10 @@ uv sync --group dev
 uv run pytest tests/ -v
 ```
 
-`tests/test_registration.py` confirms the plugin discovers correctly via
-entry points; treat its passing as a gate. `tests/test_executor.py` starts as
-stub assertions of `NotImplementedError` and should be tightened into real
-assertions as you implement methods.
+`tests/test_registration.py` is the gate: if registration breaks, nothing else
+matters. Stub tests assert `NotImplementedError`; turn them into real assertions
+as you implement. The gate pass-through test is skipped until you declare
+`SUPPORTED_OPCODES`.
 
 ## Depending on QC Executor
 
@@ -139,14 +139,18 @@ QC Executor is published on PyPI as
 
 ```toml
 dependencies = [
-    "qc-executor>=0.1.0",
+   "qc-executor>=0.2.1",
 ]
 ```
 
-The framework only requires Qiskit (used as the common intermediate
-representation). If your plugin needs one of its optional backends for
-comparison in tests, add the matching extra, for example
-`qc-executor[qulacs]>=0.1.0`.
+The core QC Executor package does not require a specific quantum SDK.
+If your plugin uses a backend SDK, declare it directly in your own
+pyproject.toml dependencies. For example, a plugin using AcmeSim
+should list acmesim-sdk as a dependency.
+
+QC Executor's optional backend extras (e.g. qc-executor[qiskit]
+or qc-executor[qulacs]) are only needed when you want to use those
+backends provided by QC Executor.
 
 ## Publishing to PyPI
 
