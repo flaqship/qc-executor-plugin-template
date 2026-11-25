@@ -143,9 +143,14 @@ dependencies = [
 ]
 ```
 
-If your plugin needs one of its optional backends for
-comparison in tests, add the matching extra, for example
-`qc-executor[qulacs]>=0.2.1`.
+The core QC Executor package does not require a specific quantum SDK.
+If your plugin uses a backend SDK, declare it directly in your own
+pyproject.toml dependencies. For example, a plugin using AcmeSim
+should list acmesim-sdk as a dependency.
+
+QC Executor's optional backend extras (e.g. qc-executor[qiskit]
+or qc-executor[qulacs]) are only needed when you want to use those
+backends provided by QC Executor.
 
 ## Publishing to PyPI
 
