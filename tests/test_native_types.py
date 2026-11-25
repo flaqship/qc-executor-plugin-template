@@ -64,6 +64,27 @@ def test_supported_opcodes_pass_through_lowering() -> None:
     assert native._lowered_ir() is native.ir
 
 
+def test_undeclared_gate_is_lowered(monkeypatch) -> None:
+    """An undeclared gate is decomposed into the declared set.
+
+    CZ is an example; swap it for a gate your backend lacks. RX, RY, RZ and CX
+    have no decomposition rule, so they cannot serve as the example.
+    """
+    if not MyBackendCircuit.supported_opcodes():
+        basis = frozenset({OpCode.RX, OpCode.RY, OpCode.RZ, OpCode.CX})
+        monkeypatch.setattr(MyBackendCircuit, "supported_opcodes", classmethod(lambda _: basis))
+    supported = MyBackendCircuit.supported_opcodes()
+    if OpCode.CZ in supported:
+        pytest.skip("CZ is native to MyBackend; pick another example gate")
+
+    native = MyBackendCircuit(2)
+    native.cz(0, 1)
+    lowered = {instruction.opcode for instruction in native._lowered_ir()}
+
+    assert OpCode.CZ not in lowered
+    assert lowered <= supported | {OpCode.BARRIER}
+
+
 def test_undeclared_non_unitary_instructions_are_rejected() -> None:
     if OpCode.RESET in MyBackendCircuit.supported_opcodes():
         pytest.skip("MyBackend declares RESET as native")
