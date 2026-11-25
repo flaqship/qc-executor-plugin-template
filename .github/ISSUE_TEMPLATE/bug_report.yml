@@ -46,7 +46,7 @@ body:
       description: "Python version (`python --version`), qc-executor version, qc-executor-mybackend version, OS"
       placeholder: |
         - Python: 3.11.x
-        - qc-executor: 0.1.0
+        - qc-executor: 0.2.1
         - qc-executor-mybackend: 0.0.1
         - OS: Ubuntu 22.04
     validations:
